@@ -1,0 +1,249 @@
+<!DOCTYPE html><html><body>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Калькулятор краски и грунта</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 10px;
+            max-width: 600px;
+            margin: auto;
+            background-color: #333;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            font-size: 18px;
+            padding: 5px;
+            border-bottom: 1px solid #4682b4;
+        }
+        input, select {
+            font-family: monospace;
+            font-size: 14px;
+            padding: 5px;
+            margin: 5px 0;
+            border: 1px solid #4682b4;
+            background-color: #444;
+            color: #fff;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        #result {
+            margin-top: 10px;
+            margin-bottom: 3cm;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 10px;
+            border: 1px solid #4682b4;
+            background-color: #444;
+            white-space: normal;
+        }
+        .paint-type-container, .novol-container, .matte-container, .thinner-container, .mixture-mass-container {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .paint-type-container, .matte-container, .thinner-container {
+            display: none;
+        }
+        .mixture-mass-label, .matte-label, .novol-label, .thinner-label {
+            font-size: 12px;
+            margin-top: -2px;
+            margin-left: 5px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Калькулятор краски и грунта</h1>
+
+    <select id="material" onchange="updateFields()">
+        <option value="primer">Грунт</option>
+        <option value="paint">Краска</option>
+    </select>
+
+    <div class="paint-type-container" id="paintTypeContainer">
+        <select id="paintType" onchange="updatePaintFields()">
+            <option value="acrylic">Акрил</option>
+            <option value="matte">Серый мат</option>
+        </select>
+    </div>
+
+    <div class="mixture-mass-container">
+        <input type="number" id="mixtureMass" placeholder="Общая масса смеси (г)" step="1" oninput="autoCalculate()" />
+        <div class="mixture-mass-label" id="mixtureMassLabel"></div>
+    </div>
+
+    <div class="matte-container" id="matteContainer">
+        <input type="number" id="mattePercent" placeholder="Матовая добавка (%)" step="0.1" value="0" oninput="autoCalculate()" />
+        <div class="matte-label">Процент матовой добавки</div>
+    </div>
+
+    <div class="thinner-container" id="thinnerContainer">
+        <input type="number" id="thinnerPercent" placeholder="Разбавитель (%)" step="0.1" value="10" oninput="autoCalculate()" />
+        <div class="thinner-label">Процент разбавителя для матовой краски</div>
+    </div>
+
+    <div class="novol-container" id="novolPercentContainer">
+        <input type="number" id="novolPercent" placeholder="Novol PLUS 760 (%)" step="0.1" value="0" oninput="autoCalculate()" />
+        <div class="novol-label">Процент Novol PLUS 760</div>
+    </div>
+
+    <div id="result">Результат появится здесь</div>
+
+    <script>
+        function updateFields() {
+            const material = document.getElementById('material').value;
+            const paintTypeContainer = document.getElementById('paintTypeContainer');
+            const novolPercentContainer = document.getElementById('novolPercentContainer');
+            const matteContainer = document.getElementById('matteContainer');
+            const thinnerContainer = document.getElementById('thinnerContainer');
+            const mixtureMassLabel = document.getElementById('mixtureMassLabel');
+
+            if (material === 'primer') {
+                paintTypeContainer.style.display = 'none';
+                novolPercentContainer.style.display = 'none';
+                matteContainer.style.display = 'none';
+                thinnerContainer.style.display = 'none';
+                mixtureMassLabel.textContent = 'Итоговая масса грунта';
+                autoCalculate();
+            } else {
+                paintTypeContainer.style.display = 'block';
+                mixtureMassLabel.textContent = 'Итоговая масса краски';
+                updatePaintFields();
+                autoCalculate();
+            }
+        }
+
+        function updatePaintFields() {
+            const paintType = document.getElementById('paintType').value;
+            const matteContainer = document.getElementById('matteContainer');
+            const thinnerContainer = document.getElementById('thinnerContainer');
+            const novolPercentContainer = document.getElementById('novolPercentContainer');
+            const novolInput = document.getElementById('novolPercent');
+
+            if (paintType === 'matte') {
+                matteContainer.style.display = 'block';
+                thinnerContainer.style.display = 'block';
+                // Скрываем поле Novol и делаем его disabled
+                novolPercentContainer.style.display = 'none';
+                novolInput.disabled = true;
+                novolInput.value = '0';
+            } else {
+                matteContainer.style.display = 'none';
+                thinnerContainer.style.display = 'none';
+                // Показываем Novol и включаем input
+                novolPercentContainer.style.display = 'block';
+                novolInput.disabled = false;
+            }
+            autoCalculate();
+        }
+
+        function autoCalculate() {
+            const mixtureMass = parseFloat(document.getElementById('mixtureMass').value) || 0;
+            const material = document.getElementById('material').value;
+            const paintType = document.getElementById('paintType').value;
+            const novolPercent = material === 'paint' && paintType !== 'matte' ? parseFloat(document.getElementById('novolPercent').value) || 0 : 0;
+            const mattePercent = material === 'paint' && paintType === 'matte' ? parseFloat(document.getElementById('mattePercent').value) || 0 : 0;
+            const thinnerPercent = material === 'paint' && paintType === 'matte' ? parseFloat(document.getElementById('thinnerPercent').value) || 10 : 10;
+            const density = 1.62;
+
+            if (mixtureMass <= 0) {
+                document.getElementById('result').innerHTML = "Пожалуйста, введите корректное значение массы смеси";
+                return;
+            }
+            if (material === 'paint' && (novolPercent < 0 || novolPercent > 100)) {
+                document.getElementById('result').innerHTML = "Процент Novol PLUS 760 должен быть от 0 до 100";
+                return;
+            }
+            if (material === 'paint' && paintType === 'matte' && (mattePercent < 0 || mattePercent > 100)) {
+                document.getElementById('result').innerHTML = "Процент матовой добавки должен быть от 0 до 100";
+                return;
+            }
+            if (material === 'paint' && paintType === 'matte' && (thinnerPercent < 0 || thinnerPercent > 100)) {
+                document.getElementById('result').innerHTML = "Процент разбавителя для матовой краски должен быть от 0 до 100";
+                return;
+            }
+
+            let result = '';
+            if (material === 'primer') {
+                const primerMass = mixtureMass * 0.7875;
+                const hardenerMass = primerMass / 6.48;
+                const thinnerMass = (primerMass + hardenerMass) * 0.10;
+                const totalCheck = primerMass + hardenerMass + thinnerMass;
+
+                result = `
+                    Общая масса смеси: ${mixtureMass.toFixed(1)} г<br>
+                    Плотность грунта: ${density} г/см³<br><br>
+                    Грунт: ${primerMass.toFixed(1)} г<br>
+                    Отвердитель: ${hardenerMass.toFixed(1)} г<br>
+                    Разбавитель: ${thinnerMass.toFixed(1)} г<br><br>
+                    Проверка: ${primerMass.toFixed(1)} + ${hardenerMass.toFixed(1)} + ${thinnerMass.toFixed(1)} = ${totalCheck.toFixed(1)} г
+                `;
+            } else {
+                if (paintType === 'acrylic') {
+                    const paintMass = mixtureMass * 0.606;
+                    const hardenerMass = mixtureMass * 0.303;
+                    const thinnerMass = mixtureMass * 0.09;
+                    const novolMass = mixtureMass * (novolPercent / 100);
+                    const totalMixtureMass = paintMass + hardenerMass + thinnerMass + novolMass;
+
+                    result = `
+                        Итоговая масса смеси: ${totalMixtureMass.toFixed(1)} г<br><br>
+                        Краска: ${paintMass.toFixed(1)} г<br>
+                        Отвердитель: ${hardenerMass.toFixed(1)} г<br>
+                        Разбавитель: ${thinnerMass.toFixed(1)} г
+                    `;
+
+                    if (novolMass > 0) {
+                        result += `<br>Novol PLUS 760: ${novolMass.toFixed(1)} г`;
+                    }
+
+                    result += `<br><br>Проверка: ${paintMass.toFixed(1)} + ${hardenerMass.toFixed(1)} + ${thinnerMass.toFixed(1)} + ${novolMass.toFixed(1)} = ${totalMixtureMass.toFixed(1)} г`;
+                } else {
+                    // Серый мат
+                    const baseMixtureMass = mixtureMass / (1 + thinnerPercent / 100);
+                    const paintMass = baseMixtureMass * 0.8;
+                    const hardenerMass = baseMixtureMass * 0.2;
+                    const thinnerMass = (paintMass + hardenerMass) * (thinnerPercent / 100);
+                    const novolMass = 0;  // поле недоступно, всегда 0
+                    const matteMass = (paintMass + hardenerMass + thinnerMass) * (mattePercent / 100);
+                    const totalMixtureMass = paintMass + hardenerMass + thinnerMass + novolMass + matteMass;
+
+                    result = `
+                        Итоговая масса смеси: ${totalMixtureMass.toFixed(1)} г<br><br>
+                        Краска: ${paintMass.toFixed(1)} г<br>
+                        Отвердитель: ${hardenerMass.toFixed(1)} г<br>
+                        Разбавитель: ${thinnerMass.toFixed(1)} г
+                    `;
+
+                    if (matteMass > 0) {
+                        result += `<br>Матовая добавка: ${matteMass.toFixed(1)} г`;
+                    }
+
+                    result += `<br><br>Проверка: ${paintMass.toFixed(1)} + ${hardenerMass.toFixed(1)} + ${thinnerMass.toFixed(1)} + ${matteMass.toFixed(1)} = ${totalMixtureMass.toFixed(1)} г`;
+                }
+            }
+
+            document.getElementById('result').innerHTML = result;
+        }
+
+        window.onload = function() {
+            updateFields();
+            document.getElementById('mixtureMass').value = '';
+        }
+    </script>
+</body>
+</html>
+
+</body>
+
+<style>
+
+</style>
+
+<script>
+
+</script></html>
