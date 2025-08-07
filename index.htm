@@ -181,10 +181,17 @@
                 `;
             } else {
                 if (paintType === 'acrylic') {
-                    const paintMass = mixtureMass * 0.606;
-                    const hardenerMass = mixtureMass * 0.303;
-                    const thinnerMass = mixtureMass * 0.09;
-                    const novolMass = mixtureMass * (novolPercent / 100);
+                    // mixtureMass = paintMass + hardenerMass + thinnerMass + novolMass
+                    // paintMass = baseMixtureMass * 0.606
+                    // hardenerMass = baseMixtureMass * 0.303
+                    // thinnerMass = baseMixtureMass * 0.09
+                    // novolMass = baseMixtureMass * (novolPercent / 100)
+                    // mixtureMass = baseMixtureMass * (0.606 + 0.303 + 0.09 + novolPercent / 100)
+                    const baseMixtureMass = mixtureMass / (0.999 + novolPercent / 100);
+                    const paintMass = baseMixtureMass * 0.606;
+                    const hardenerMass = baseMixtureMass * 0.303;
+                    const thinnerMass = baseMixtureMass * 0.09;
+                    const novolMass = baseMixtureMass * (novolPercent / 100);
                     const totalMixtureMass = paintMass + hardenerMass + thinnerMass + novolMass;
 
                     result = `
@@ -201,12 +208,6 @@
                     result += `<br><br>Проверка: ${paintMass.toFixed(1)} + ${hardenerMass.toFixed(1)} + ${thinnerMass.toFixed(1)} + ${novolMass.toFixed(1)} = ${totalMixtureMass.toFixed(1)} г`;
                 } else {
                     // Серый мат
-                    // mixtureMass = baseMixtureMass + thinnerMass + matteMass
-                    // thinnerMass = baseMixtureMass * (thinnerPercent / 100)
-                    // matteMass = (baseMixtureMass + thinnerMass) * (mattePercent / 100)
-                    // Подставляем: matteMass = baseMixtureMass * (1 + thinnerPercent / 100) * (mattePercent / 100)
-                    // mixtureMass = baseMixtureMass + baseMixtureMass * (thinnerPercent / 100) + baseMixtureMass * (1 + thinnerPercent / 100) * (mattePercent / 100)
-                    // mixtureMass = baseMixtureMass * (1 + thinnerPercent / 100 + (1 + thinnerPercent / 100) * (mattePercent / 100))
                     const baseMixtureMass = mixtureMass / (1 + thinnerPercent / 100 + (1 + thinnerPercent / 100) * (mattePercent / 100));
                     const paintMass = baseMixtureMass * 0.8;
                     const hardenerMass = baseMixtureMass * 0.2;
