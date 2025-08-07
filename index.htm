@@ -1,4 +1,3 @@
-<!DOCTYPE html><html><body>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -127,14 +126,12 @@
             if (paintType === 'matte') {
                 matteContainer.style.display = 'block';
                 thinnerContainer.style.display = 'block';
-                // Скрываем поле Novol и делаем его disabled
                 novolPercentContainer.style.display = 'none';
                 novolInput.disabled = true;
                 novolInput.value = '0';
             } else {
                 matteContainer.style.display = 'none';
                 thinnerContainer.style.display = 'none';
-                // Показываем Novol и включаем input
                 novolPercentContainer.style.display = 'block';
                 novolInput.disabled = false;
             }
@@ -204,13 +201,15 @@
                     result += `<br><br>Проверка: ${paintMass.toFixed(1)} + ${hardenerMass.toFixed(1)} + ${thinnerMass.toFixed(1)} + ${novolMass.toFixed(1)} = ${totalMixtureMass.toFixed(1)} г`;
                 } else {
                     // Серый мат
-                    const baseMixtureMass = mixtureMass / (1 + thinnerPercent / 100);
+                    // Итоговая масса = краска + отвердитель + разбавитель + матовая добавка
+                    // mixtureMass = baseMixtureMass * (1 + thinnerPercent/100 + mattePercent/100)
+                    // baseMixtureMass = mixtureMass / (1 + thinnerPercent/100 + mattePercent/100)
+                    const baseMixtureMass = mixtureMass / (1 + thinnerPercent / 100 + mattePercent / 100);
                     const paintMass = baseMixtureMass * 0.8;
                     const hardenerMass = baseMixtureMass * 0.2;
-                    const thinnerMass = (paintMass + hardenerMass) * (thinnerPercent / 100);
-                    const novolMass = 0;  // поле недоступно, всегда 0
-                    const matteMass = (paintMass + hardenerMass + thinnerMass) * (mattePercent / 100);
-                    const totalMixtureMass = paintMass + hardenerMass + thinnerMass + novolMass + matteMass;
+                    const thinnerMass = baseMixtureMass * (thinnerPercent / 100);
+                    const matteMass = baseMixtureMass * (mattePercent / 100);
+                    const totalMixtureMass = paintMass + hardenerMass + thinnerMass + matteMass;
 
                     result = `
                         Итоговая масса смеси: ${totalMixtureMass.toFixed(1)} г<br><br>
@@ -237,13 +236,3 @@
     </script>
 </body>
 </html>
-
-</body>
-
-<style>
-
-</style>
-
-<script>
-
-</script></html>
